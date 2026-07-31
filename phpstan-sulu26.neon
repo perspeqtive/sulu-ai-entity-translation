@@ -1,0 +1,11 @@
+# PHPStan configuration for a Sulu 2.6 installation.
+# The Sulu 3 code paths are excluded because their namespaces are not installed.
+includes:
+    - phpstan-base.neon
+
+parameters:
+    excludePaths:
+        analyseAndScan:
+            - src/Content/Sulu3
+            - tests/Fixtures/Sulu3
+            - tests/Unit/Content/Sulu3

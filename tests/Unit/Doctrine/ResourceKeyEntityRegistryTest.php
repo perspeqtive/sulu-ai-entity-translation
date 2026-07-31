@@ -9,7 +9,7 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMSetup;
 use PERSPEQTIVE\SuluAiEntityTranslationBundle\Doctrine\ResourceKeyEntityRegistry;
-use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Fixtures\TestEntity;
+use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\SuluVersion;
 use PHPUnit\Framework\TestCase;
 
 class ResourceKeyEntityRegistryTest extends TestCase
@@ -18,7 +18,7 @@ class ResourceKeyEntityRegistryTest extends TestCase
     {
         $registry = new ResourceKeyEntityRegistry($this->createEntityManager());
 
-        self::assertSame(TestEntity::class, $registry->findEntityClass('test_entities'));
+        self::assertSame(SuluVersion::entityClass(), $registry->findEntityClass('test_entities'));
     }
 
     public function testReturnsNullForUnknownResourceKey(): void
@@ -31,7 +31,7 @@ class ResourceKeyEntityRegistryTest extends TestCase
     private function createEntityManager(): EntityManagerInterface
     {
         $config = ORMSetup::createAttributeMetadataConfiguration(
-            [__DIR__ . '/../../Fixtures'],
+            [SuluVersion::fixtureDirectory()],
             true,
         );
 

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Unit\Content\Sulu3;
+namespace PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Unit\Content\Sulu26;
 
-use PERSPEQTIVE\SuluAiEntityTranslationBundle\Content\Sulu3\DimensionContentAdapter;
-use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Fixtures\Sulu3\TestDimensionContent;
-use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Fixtures\Sulu3\TestEntity;
+use PERSPEQTIVE\SuluAiEntityTranslationBundle\Content\Sulu26\DimensionContentAdapter;
+use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Fixtures\Sulu26\TestDimensionContent;
+use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Fixtures\Sulu26\TestEntity;
 use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\SuluVersion;
 use PHPUnit\Framework\TestCase;
 
@@ -14,8 +14,8 @@ class DimensionContentAdapterTest extends TestCase
 {
     protected function setUp(): void
     {
-        if (!SuluVersion::isSulu3()) {
-            self::markTestSkipped('Requires Sulu 3.');
+        if (SuluVersion::isSulu3()) {
+            self::markTestSkipped('Requires Sulu 2.6.');
         }
     }
 

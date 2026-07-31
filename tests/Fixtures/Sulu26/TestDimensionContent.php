@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Fixtures;
+namespace PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Fixtures\Sulu26;
 
 use Doctrine\ORM\Mapping as ORM;
-use Sulu\Content\Domain\Model\DimensionContentInterface;
-use Sulu\Content\Domain\Model\DimensionContentTrait;
-use Sulu\Content\Domain\Model\TemplateInterface;
-use Sulu\Content\Domain\Model\TemplateTrait;
+use Sulu\Bundle\ContentBundle\Content\Domain\Model\DimensionContentInterface;
+use Sulu\Bundle\ContentBundle\Content\Domain\Model\DimensionContentTrait;
+use Sulu\Bundle\ContentBundle\Content\Domain\Model\TemplateInterface;
+use Sulu\Bundle\ContentBundle\Content\Domain\Model\TemplateTrait;
 
 /**
  * @implements DimensionContentInterface<TestEntity>
