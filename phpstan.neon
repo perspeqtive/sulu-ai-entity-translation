@@ -6,3 +6,11 @@ parameters:
     level: max
     scanFiles:
         - vendor/symfony/dependency-injection/Loader/Configurator/ContainerConfigurator.php
+    ignoreErrors:
+        # Sulu's DimensionContentInterface<T> is self-referential (T of ContentRichEntityInterface,
+        # which is itself templated on DimensionContentInterface), so the type arguments cannot be
+        # spelled out. Sulu's own decorators sidestep this by typing against already-bound
+        # subinterfaces, which do not exist for custom entities.
+        -
+            identifier: missingType.generics
+            path: src/Content/*
