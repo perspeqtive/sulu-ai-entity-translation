@@ -71,6 +71,13 @@ class DimensionContentAdapterTest extends TestCase
         self::assertSame($dimensionContent, $adapter->getDimensionContent());
     }
 
+    public function testExposesTemplateType(): void
+    {
+        $adapter = new DimensionContentAdapter($this->createDimensionContent());
+
+        self::assertSame('test_entity', $adapter->getTemplateType());
+    }
+
     private function createDimensionContent(): TestDimensionContent
     {
         return new TestDimensionContent(new TestEntity());
