@@ -1,0 +1,41 @@
+{
+    "name": "perspeqtive/sulu-ai-entity-translation",
+    "description": "Enables Sulu AI full content translation for custom Sulu entities when copying a locale.",
+    "type": "sulu-bundle",
+    "license": "MIT",
+    "keywords": [
+        "sulu",
+        "sulu-ai",
+        "translation"
+    ],
+    "autoload": {
+        "psr-4": {
+            "PERSPEQTIVE\\SuluAiEntityTranslationBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PERSPEQTIVE\\SuluAiEntityTranslationBundle\\Tests\\": "tests/"
+        }
+    },
+    "require": {
+        "php": "^8.2",
+        "sulu/sulu": "^2.6 || ^3.0",
+        "sulu/content-bundle": "^0.8 || ^3.0",
+        "sulu/ai-platform-bundle": "^0.6"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.9",
+        "phpstan/extension-installer": "1.4.*",
+        "phpstan/phpstan": "2.1.*",
+        "phpunit/phpunit": "11.5.*",
+        "rector/rector": "2.1.*",
+        "roave/security-advisories": "dev-latest"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true,
+            "phpstan/extension-installer": true
+        }
+    }
+}
