@@ -20,7 +20,7 @@ use function method_exists;
  * changed between Sulu 2.6 (Sulu\Bundle\ContentBundle\Content\Domain\Model) and Sulu 3
  * (Sulu\Content\Domain\Model). Keeping this class free of those imports lets it serve both.
  */
-final class ResourceKeyEntityRegistry
+final class ResourceKeyEntityRegistry implements ResourceKeyEntityRegistryInterface
 {
     private const CONTENT_RICH_ENTITY_INTERFACES = [
         'Sulu\\Content\\Domain\\Model\\ContentRichEntityInterface',
