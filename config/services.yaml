@@ -1,0 +1,27 @@
+services:
+  PERSPEQTIVE\SuluAiEntityTranslationBundle\Doctrine\ResourceKeyEntityRegistry:
+    arguments:
+      - '@doctrine.orm.entity_manager'
+
+  PERSPEQTIVE\SuluAiEntityTranslationBundle\Doctrine\ResourceKeyEntityRegistryInterface:
+    alias: PERSPEQTIVE\SuluAiEntityTranslationBundle\Doctrine\ResourceKeyEntityRegistry
+
+  # The content repository and the form metadata loader differ between Sulu generations and are
+  # defined in services_sulu26.yaml and services_sulu3.yaml.
+  sulu_ai_entity_translation.translation_subscriber:
+    class: PERSPEQTIVE\SuluAiEntityTranslationBundle\EventListener\CustomEntityTranslationSubscriber
+    arguments:
+      - '@sulu_ai_platform.translator'
+      - '@sulu_ai_entity_translation.form_metadata_loader'
+      - '@sulu_admin.metadata_provider_registry'
+      - '@sulu_ai_entity_translation.content_repository'
+      - '@request_stack'
+      - '@Sulu\Component\Security\Authorization\SecurityCheckerInterface'
+      - '@PERSPEQTIVE\SuluAiEntityTranslationBundle\Doctrine\ResourceKeyEntityRegistryInterface'
+      - '@sulu_activity.domain_event_dispatcher'
+      - '@slugger'
+      - '@logger'
+      - '%sulu_ai_platform.property_type_translation_properties%'
+    tags:
+      - { name: kernel.event_subscriber }
+      - { name: monolog.logger, channel: sulu_ai_entity_translation }

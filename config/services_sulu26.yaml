@@ -1,0 +1,9 @@
+services:
+  sulu_ai_entity_translation.content_repository:
+    class: PERSPEQTIVE\SuluAiEntityTranslationBundle\Content\Sulu26\ContentRichEntityRepository
+    arguments:
+      - '@doctrine.orm.entity_manager'
+      - '@PERSPEQTIVE\SuluAiEntityTranslationBundle\Doctrine\ResourceKeyEntityRegistryInterface'
+
+  sulu_ai_entity_translation.form_metadata_loader:
+    alias: sulu_admin.structure_form_metadata_loader
