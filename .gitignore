@@ -3,4 +3,4 @@
 /composer.lock
 /.php-cs-fixer.cache
 /.phpunit.cache
-/tests/var
+/tests/Application/var

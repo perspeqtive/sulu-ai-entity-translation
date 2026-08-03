@@ -4,6 +4,9 @@ parameters:
         - tests
         - config
     level: max
+    excludePaths:
+        analyseAndScan:
+            - tests/Application/var
     scanFiles:
         - vendor/symfony/dependency-injection/Loader/Configurator/ContainerConfigurator.php
     ignoreErrors:
