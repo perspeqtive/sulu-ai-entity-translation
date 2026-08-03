@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Integration;
+namespace PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Integration\Sulu3;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use PERSPEQTIVE\SuluAiEntityTranslationBundle\EventListener\CustomEntityTranslationSubscriber;
 use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Application\TestKernel;
-use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Fixtures\Sulu26\TestDimensionContent;
-use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Fixtures\Sulu26\TestEntity;
+use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Fixtures\Sulu3\TestDimensionContent;
+use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Fixtures\Sulu3\TestEntity;
 use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Fixtures\TestDomainEvent;
 use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\SuluVersion;
 use Sulu\Bundle\AiBundle\Expert\Translator\TranslatorResponse;
 use Sulu\Bundle\AiBundle\Testing\TestTranslator\TestTranslator;
-use Sulu\Bundle\ContentBundle\Content\Domain\Model\DimensionContentInterface;
+use Sulu\Content\Domain\Model\DimensionContentInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -32,8 +32,8 @@ class TranslateCopiedLocaleTest extends KernelTestCase
 
     protected function setUp(): void
     {
-        if (SuluVersion::isSulu3()) {
-            self::markTestSkipped('Requires Sulu 2.6.');
+        if (!SuluVersion::isSulu3()) {
+            self::markTestSkipped('Requires Sulu 3.');
         }
 
         self::bootKernel();

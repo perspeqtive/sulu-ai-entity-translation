@@ -31,18 +31,32 @@ return static function (ContainerConfigurator $container): void {
         ],
     ]);
 
-    $container->extension('sulu_core', [
-        'content' => [
-            'structure' => [
-                'paths' => [
-                    'test_entity' => [
-                        'path' => \dirname(__DIR__) . '/templates',
-                        'type' => 'test_entity',
+    // Sulu 2.6 registers template directories under sulu_core, Sulu 3 under sulu_admin.
+    $templateDirectory = \dirname(__DIR__) . '/templates';
+
+    if ('Sulu3' === $suluVersion) {
+        $container->extension('sulu_admin', [
+            'templates' => [
+                'test_entity' => [
+                    'default_type' => 'default',
+                    'directories' => ['test_entity' => $templateDirectory],
+                ],
+            ],
+        ]);
+    } else {
+        $container->extension('sulu_core', [
+            'content' => [
+                'structure' => [
+                    'paths' => [
+                        'test_entity' => [
+                            'path' => $templateDirectory,
+                            'type' => 'test_entity',
+                        ],
                     ],
                 ],
             ],
-        ],
-    ]);
+        ]);
+    }
 
     $container->extension('sulu_ai_platform', [
         'api_key' => 'test-api-key',

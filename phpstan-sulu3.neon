@@ -9,3 +9,4 @@ parameters:
             - src/Content/Sulu26
             - tests/Fixtures/Sulu26
             - tests/Unit/Content/Sulu26
+            - tests/Integration/Sulu26

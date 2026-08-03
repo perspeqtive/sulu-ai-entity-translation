@@ -1,0 +1,59 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+
+jobs:
+    test:
+        name: Sulu ${{ matrix.sulu }} / PHP ${{ matrix.php }}
+        runs-on: ubuntu-latest
+
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    -   sulu: '2.6'
+                        php: '8.2'
+                        constraints: 'sulu/sulu:^2.6 sulu/content-bundle:^0.8'
+                        phpstan-config: 'phpstan-sulu26.neon'
+                    -   sulu: '3.0'
+                        php: '8.2'
+                        constraints: 'sulu/sulu:^3.0'
+                        phpstan-config: 'phpstan-sulu3.neon'
+
+        steps:
+            -   uses: actions/checkout@v4
+
+            -   name: Install PHP
+                uses: shivammathur/setup-php@v2
+                with:
+                    php-version: ${{ matrix.php }}
+                    extensions: intl, dom, libxml, pdo_sqlite
+                    coverage: none
+
+            # sulu/ai-platform-bundle is proprietary and served from Sulu's private endpoint,
+            # so the workflow cannot run without these credentials. Pull requests from forks
+            # do not receive them and will fail here.
+            -   name: Configure the Sulu Composer repository
+                env:
+                    SULU_COMPOSER_URL: ${{ secrets.SULU_COMPOSER_URL }}
+                    SULU_COMPOSER_TOKEN: ${{ secrets.SULU_COMPOSER_TOKEN }}
+                run: |
+                    composer config repositories.sulu composer "$SULU_COMPOSER_URL"
+                    composer config --auth http-basic.sulu.repo.packagist.com token "$SULU_COMPOSER_TOKEN"
+
+            -   name: Install dependencies
+                env:
+                    CONSTRAINTS: ${{ matrix.constraints }}
+                run: composer update $CONSTRAINTS --with-all-dependencies --no-interaction --no-progress
+
+            -   name: Run tests
+                run: vendor/bin/phpunit
+
+            -   name: Run static analysis
+                run: vendor/bin/phpstan analyse -c ${{ matrix.phpstan-config }} --no-progress
+
+            -   name: Check code style
+                run: vendor/bin/php-cs-fixer fix --dry-run --diff

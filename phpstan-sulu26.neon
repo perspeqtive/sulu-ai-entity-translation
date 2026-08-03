@@ -9,3 +9,4 @@ parameters:
             - src/Content/Sulu3
             - tests/Fixtures/Sulu3
             - tests/Unit/Content/Sulu3
+            - tests/Integration/Sulu3

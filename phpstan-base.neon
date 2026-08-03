@@ -9,6 +9,10 @@ parameters:
             - tests/Application/var
     scanFiles:
         - vendor/symfony/dependency-injection/Loader/Configurator/ContainerConfigurator.php
+    # The test kernel instantiates bundle classes by name, and which of them PHPStan can resolve
+    # depends on the installed Sulu generation. The same ignore therefore matches in one matrix
+    # job and not in the other.
+    reportUnmatchedIgnoredErrors: false
     ignoreErrors:
         # Sulu's DimensionContentInterface<T> is self-referential (T of ContentRichEntityInterface,
         # which is itself templated on DimensionContentInterface), so the type arguments cannot be
@@ -17,3 +21,10 @@ parameters:
         -
             identifier: missingType.generics
             path: src/Content/*
+        # Version conditional bundle instantiation in the test kernel, see above.
+        -
+            identifier: argument.type
+            path: tests/Application/TestKernel.php
+        -
+            identifier: return.type
+            path: tests/Application/TestKernel.php
