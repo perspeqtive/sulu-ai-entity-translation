@@ -40,5 +40,12 @@
             "php-http/discovery": true,
             "phpstan/extension-installer": true
         }
-    }
+    },
+    "repositories": [
+        {
+            "name": "sulu",
+            "type": "composer",
+            "url": "https://sulu.repo.packagist.com/perspeqtive-gmbh/"
+        }
+    ]
 }
