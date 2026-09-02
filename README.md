@@ -102,6 +102,17 @@ Derived from the entity's form metadata, using Sulu's own logic:
 | blocks | traversed recursively, including global blocks |
 | everything else | left untouched |
 
+## Pages, articles and snippets
+
+Those three are translated by `sulu/ai-platform-bundle` itself and this bundle leaves them alone.
+It matters on Sulu 3, where they are Doctrine entities implementing `ContentRichEntityInterface`
+and therefore indistinguishable from a custom entity to any generic discovery. Translating them
+again would cost a second platform request per copy-locale and replace the resource locator Sulu
+generated from the `route_schema` with a plain slug.
+
+The list comes from the `sulu_ai_platform.built_in_resource_keys` parameter, so it stays correct
+when Sulu AI grows another built-in resource.
+
 ## Behaviour on failure
 
 If the translation service fails, the locale copy is still created and persisted. The failure is

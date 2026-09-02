@@ -21,6 +21,7 @@ services:
       - '@sulu_activity.domain_event_dispatcher'
       - '@slugger'
       - '@logger'
+      - '%sulu_ai_platform.built_in_resource_keys%'
       - '%sulu_ai_platform.property_type_translation_properties%'
     tags:
       - { name: kernel.event_subscriber }

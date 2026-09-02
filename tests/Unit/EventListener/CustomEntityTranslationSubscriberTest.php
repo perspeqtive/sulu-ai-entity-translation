@@ -45,6 +45,16 @@ class CustomEntityTranslationSubscriberTest extends TestCase
         self::assertFalse($repository->wasQueried());
     }
 
+    public function testIgnoresResourcesSuluAiTranslatesItself(): void
+    {
+        $repository = new RecordingContentRepository();
+        $subscriber = $this->createSubscriber($repository, $this->copyLocaleRequest(), builtInResourceKeys: ['pages']);
+
+        $subscriber->onDomainEvent(new TestDomainEvent(resourceKey: 'pages'));
+
+        self::assertFalse($repository->wasQueried());
+    }
+
     public function testIgnoresRequestsThatAreNotCopyingALocale(): void
     {
         $repository = new RecordingContentRepository();
@@ -119,12 +129,14 @@ class CustomEntityTranslationSubscriberTest extends TestCase
 
     /**
      * @param class-string|null $entityClass
+     * @param list<string> $builtInResourceKeys
      */
     private function createSubscriber(
         RecordingContentRepository $repository,
         Request $request,
         ?string $entityClass = stdClass::class,
         ?DomainEventDispatcherInterface $dispatcher = null,
+        array $builtInResourceKeys = [],
     ): CustomEntityTranslationSubscriber {
         $requestStack = new RequestStack();
         $requestStack->push($request);
@@ -146,6 +158,7 @@ class CustomEntityTranslationSubscriberTest extends TestCase
             $dispatcher ?? $this->createMock(DomainEventDispatcherInterface::class),
             new AsciiSlugger(),
             new NullLogger(),
+            $builtInResourceKeys,
         );
     }
 }

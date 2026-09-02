@@ -22,7 +22,7 @@
         "php": "^8.2",
         "sulu/sulu": "^2.6 || ^3.0",
         "sulu/content-bundle": "^0.8 || ^3.0",
-        "sulu/ai-platform-bundle": "^0.7",
+        "sulu/ai-platform-bundle": "^0.8",
         "psr/log": "^3.0",
         "symfony/string": "^6.4 || ^7.0"
     },
@@ -40,12 +40,5 @@
             "php-http/discovery": true,
             "phpstan/extension-installer": true
         }
-    },
-    "repositories": [
-        {
-            "name": "sulu",
-            "type": "composer",
-            "url": "https://sulu.repo.packagist.com/perspeqtive-gmbh/"
-        }
-    ]
+    }
 }

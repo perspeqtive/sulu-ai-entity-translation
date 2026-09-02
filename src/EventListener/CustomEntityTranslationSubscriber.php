@@ -23,6 +23,7 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 use Throwable;
 
 use function implode;
+use function in_array;
 use function is_string;
 use function rtrim;
 
@@ -37,6 +38,7 @@ use function rtrim;
 final class CustomEntityTranslationSubscriber extends AbstractFullContentTranslationSubscriber implements EventSubscriberInterface
 {
     /**
+     * @param list<string> $builtInResourceKeys
      * @param array<string, list<string>> $propertyTypeTranslationProperties
      */
     public function __construct(
@@ -50,6 +52,7 @@ final class CustomEntityTranslationSubscriber extends AbstractFullContentTransla
         private readonly DomainEventDispatcherInterface $domainEventDispatcher,
         private readonly SluggerInterface $slugger,
         private readonly LoggerInterface $logger,
+        private readonly array $builtInResourceKeys = [],
         array $propertyTypeTranslationProperties = [],
     ) {
         parent::__construct(
@@ -83,6 +86,10 @@ final class CustomEntityTranslationSubscriber extends AbstractFullContentTransla
         }
 
         $resourceKey = $event->getResourceKey();
+
+        if (true === in_array($resourceKey, $this->builtInResourceKeys, true)) {
+            return;
+        }
 
         if (null === $this->registry->findEntityClass($resourceKey)) {
             return;
