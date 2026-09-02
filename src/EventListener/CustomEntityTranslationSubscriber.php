@@ -74,11 +74,11 @@ final class CustomEntityTranslationSubscriber extends AbstractFullContentTransla
     public function onDomainEvent(DomainEvent $event): void
     {
         // Dispatching the failure event below re-enters this listener.
-        if ($event instanceof TranslationFailedEvent) {
+        if (true === $event instanceof TranslationFailedEvent) {
             return;
         }
 
-        if (!$this->isCopyLocaleRequest()) {
+        if (false === $this->isCopyLocaleRequest()) {
             return;
         }
 
@@ -114,7 +114,7 @@ final class CustomEntityTranslationSubscriber extends AbstractFullContentTransla
 
         $templateKey = $adapter->getTemplateKey();
 
-        if (null === $templateKey || !$adapter instanceof TemplateTypeAwareInterface) {
+        if (null === $templateKey || false === $adapter instanceof TemplateTypeAwareInterface) {
             return;
         }
 
@@ -150,7 +150,7 @@ final class CustomEntityTranslationSubscriber extends AbstractFullContentTransla
     {
         $request = $this->requestStack->getMainRequest();
 
-        if (!$request instanceof Request) {
+        if (false === $request instanceof Request) {
             return false;
         }
 
@@ -162,13 +162,17 @@ final class CustomEntityTranslationSubscriber extends AbstractFullContentTransla
     {
         $sourceLocale = $event->getEventContext()['sourceLocale'] ?? null;
 
-        if (is_string($sourceLocale)) {
+        if (true === is_string($sourceLocale)) {
             return $sourceLocale;
         }
 
         $request = $this->requestStack->getMainRequest();
         $sourceLocale = $request?->query->get('src');
 
-        return is_string($sourceLocale) ? $sourceLocale : null;
+        if (true === is_string($sourceLocale)) {
+            return $sourceLocale;
+        }
+
+        return null;
     }
 }
