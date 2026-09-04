@@ -43,6 +43,8 @@ final class CustomEntityTranslationSubscriber extends AbstractFullContentTransla
     /**
      * @param list<string> $builtInResourceKeys
      * @param array<string, list<string>> $propertyTypeTranslationProperties
+     * @param list<string> $textFieldTypes
+     * @param list<string> $htmlFieldTypes
      */
     public function __construct(
         TranslatorInterface $translator,
@@ -58,6 +60,8 @@ final class CustomEntityTranslationSubscriber extends AbstractFullContentTransla
         private readonly LoggerInterface $logger,
         private readonly array $builtInResourceKeys = [],
         array $propertyTypeTranslationProperties = [],
+        array $textFieldTypes = ['text_line', 'text_area'],
+        array $htmlFieldTypes = ['text_editor'],
     ) {
         parent::__construct(
             $translator,
@@ -67,6 +71,8 @@ final class CustomEntityTranslationSubscriber extends AbstractFullContentTransla
             $requestStack,
             $securityChecker,
             $propertyTypeTranslationProperties,
+            $textFieldTypes,
+            $htmlFieldTypes,
         );
     }
 

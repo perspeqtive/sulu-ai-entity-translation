@@ -60,6 +60,8 @@ return static function (ContainerConfigurator $container): void {
 
     $container->extension('sulu_ai_platform', [
         'api_key' => 'test-api-key',
+        'text_field_types' => ['text_line', 'text_area', 'custom_text_line'],
+        'html_field_types' => ['text_editor', 'custom_editor'],
         'contact_email' => 'test@example.com',
         'webhook' => [
             'secret' => 'test-webhook-secret',

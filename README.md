@@ -102,6 +102,16 @@ Derived from the entity's form metadata, using Sulu's own logic:
 | blocks | traversed recursively, including global blocks |
 | everything else | left untouched |
 
+The first two rows are the defaults of `sulu_ai_platform.text_field_types` and
+`sulu_ai_platform.html_field_types`. A project that registers its own property types can extend
+them, and this bundle honours the same configuration:
+
+```yaml
+sulu_ai_platform:
+    text_field_types: ['text_line', 'text_area', 'my_custom_text_type']
+    html_field_types: ['text_editor', 'my_custom_editor_type']
+```
+
 ## Pages, articles and snippets
 
 Those three are translated by `sulu/ai-platform-bundle` itself and this bundle leaves them alone.

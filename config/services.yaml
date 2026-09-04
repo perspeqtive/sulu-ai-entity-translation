@@ -24,6 +24,8 @@ services:
       - '@logger'
       - '%sulu_ai_platform.built_in_resource_keys%'
       - '%sulu_ai_platform.property_type_translation_properties%'
+      - '%sulu_ai_platform.text_field_types%'
+      - '%sulu_ai_platform.html_field_types%'
     tags:
       - { name: kernel.event_subscriber }
       - { name: monolog.logger, channel: sulu_ai_entity_translation }

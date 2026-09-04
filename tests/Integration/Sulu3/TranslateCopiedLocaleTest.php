@@ -59,6 +59,26 @@ class TranslateCopiedLocaleTest extends KernelTestCase
         );
     }
 
+    public function testTranslatesFieldsOfConfiguredProjectSpecificTypes(): void
+    {
+        $entityManager = $this->prepareSchema();
+        $entity = $this->createEntityWithCopiedLocale($entityManager, 'custom_types');
+
+        $this->mockTranslations();
+        $this->givenACopyLocaleRequest();
+
+        $this->subscriber()->onDomainEvent(new TestDomainEvent(
+            resourceKey: 'test_entities',
+            resourceId: (string) $entity->getId(),
+            resourceLocale: 'en',
+        ));
+
+        self::assertSame(
+            ['title' => 'Glossary term', 'description' => '<p>An explanation</p>', 'reference' => null],
+            $this->englishContent($entity)->getTemplateData(),
+        );
+    }
+
     private function mockTranslations(): void
     {
         /** @var TestTranslator $translator */
@@ -105,15 +125,15 @@ class TranslateCopiedLocaleTest extends KernelTestCase
         return $entityManager;
     }
 
-    private function createEntityWithCopiedLocale(EntityManagerInterface $entityManager): TestEntity
+    private function createEntityWithCopiedLocale(EntityManagerInterface $entityManager, string $templateKey = 'default'): TestEntity
     {
         $entity = new TestEntity();
 
-        $german = $this->addDimensionContent($entity, 'de');
+        $german = $this->addDimensionContent($entity, 'de', $templateKey);
         $german->setTemplateData(['title' => 'Glossarbegriff', 'description' => '<p>Eine Erklärung</p>', 'reference' => null]);
 
         // This is what copy-locale leaves behind: the source content under the target locale.
-        $english = $this->addDimensionContent($entity, 'en');
+        $english = $this->addDimensionContent($entity, 'en', $templateKey);
         $english->setTemplateData(['title' => 'Glossarbegriff', 'description' => '<p>Eine Erklärung</p>', 'reference' => null]);
 
         $entityManager->persist($entity);
@@ -124,12 +144,12 @@ class TranslateCopiedLocaleTest extends KernelTestCase
         return $entity;
     }
 
-    private function addDimensionContent(TestEntity $entity, string $locale): TestDimensionContent
+    private function addDimensionContent(TestEntity $entity, string $locale, string $templateKey): TestDimensionContent
     {
         $dimensionContent = new TestDimensionContent($entity);
         $dimensionContent->setLocale($locale);
         $dimensionContent->setStage(DimensionContentInterface::STAGE_DRAFT);
-        $dimensionContent->setTemplateKey('default');
+        $dimensionContent->setTemplateKey($templateKey);
         $entity->addDimensionContent($dimensionContent);
 
         return $dimensionContent;
