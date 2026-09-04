@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PERSPEQTIVE\SuluAiEntityTranslationBundle\EventListener;
 
+use Doctrine\ORM\EntityManagerInterface;
 use PERSPEQTIVE\SuluAiEntityTranslationBundle\Content\TemplateTypeAwareInterface;
 use PERSPEQTIVE\SuluAiEntityTranslationBundle\Doctrine\ResourceKeyEntityRegistryInterface;
 use PERSPEQTIVE\SuluAiEntityTranslationBundle\Domain\Event\TranslationFailedEvent;
@@ -37,6 +38,8 @@ use function rtrim;
  */
 final class CustomEntityTranslationSubscriber extends AbstractFullContentTranslationSubscriber implements EventSubscriberInterface
 {
+    private ?DomainEvent $currentEvent = null;
+
     /**
      * @param list<string> $builtInResourceKeys
      * @param array<string, list<string>> $propertyTypeTranslationProperties
@@ -50,6 +53,7 @@ final class CustomEntityTranslationSubscriber extends AbstractFullContentTransla
         SecurityCheckerInterface $securityChecker,
         private readonly ResourceKeyEntityRegistryInterface $registry,
         private readonly DomainEventDispatcherInterface $domainEventDispatcher,
+        private readonly EntityManagerInterface $entityManager,
         private readonly SluggerInterface $slugger,
         private readonly LoggerInterface $logger,
         private readonly array $builtInResourceKeys = [],
@@ -101,10 +105,14 @@ final class CustomEntityTranslationSubscriber extends AbstractFullContentTransla
             return;
         }
 
+        $this->currentEvent = $event;
+
         try {
             $this->translate($event, $resourceKey, $targetLocale);
         } catch (Throwable $throwable) {
-            $this->recordFailure($event, $resourceKey, $targetLocale, $throwable);
+            $this->onTranslationFailure($throwable, '', '', $targetLocale);
+        } finally {
+            $this->currentEvent = null;
         }
     }
 
@@ -135,19 +143,35 @@ final class CustomEntityTranslationSubscriber extends AbstractFullContentTransla
         );
     }
 
-    private function recordFailure(DomainEvent $event, string $resourceKey, string $targetLocale, Throwable $throwable): void
-    {
+    protected function onTranslationFailure(
+        Throwable $throwable,
+        string $resourceType,
+        string $structureType,
+        string $resourceLocale,
+    ): void {
+        $event = $this->currentEvent;
+
         $this->logger->error('AI translation of a copied locale failed.', [
-            'resourceKey' => $resourceKey,
-            'resourceId' => $event->getResourceId(),
-            'locale' => $targetLocale,
+            'resourceKey' => $event?->getResourceKey(),
+            'resourceId' => $event?->getResourceId(),
+            'resourceType' => $resourceType,
+            'structureType' => $structureType,
+            'locale' => $resourceLocale,
             'exception' => $throwable,
         ]);
 
+        if (null === $event) {
+            return;
+        }
+
+        if (false === $this->entityManager->isOpen()) {
+            return;
+        }
+
         $this->domainEventDispatcher->dispatch(new TranslationFailedEvent(
-            $resourceKey,
+            $event->getResourceKey(),
             $event->getResourceId(),
-            $targetLocale,
+            $resourceLocale,
             $event->getResourceTitle(),
             $throwable->getMessage(),
         ));

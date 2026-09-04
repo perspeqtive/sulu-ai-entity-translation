@@ -119,6 +119,11 @@ If the translation service fails, the locale copy is still created and persisted
 logged and recorded in Sulu's activity log as an `ai_translation_failed` event. The editor sees
 the untranslated copy and can translate manually.
 
+The one exception is a failure that leaves the EntityManager closed, a failed flush being the
+usual cause: writing the activity log needs an open one, so only the log entry is written. The
+copy still survives, because Sulu AI reports the failure instead of letting it escape the
+Doctrine `postFlush` the domain events are dispatched from.
+
 **No error message appears in the admin UI.** Sulu's `CopyLocaleToolbarAction` attaches no error
 handler to the copy-locale request, so a failed request produces no snackbar — this affects pages
 just as much as custom entities. Surfacing it would require overriding Sulu's admin JavaScript,

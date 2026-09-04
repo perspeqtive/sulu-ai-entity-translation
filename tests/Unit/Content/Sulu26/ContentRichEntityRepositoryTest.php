@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Unit\Content\Sulu26;
 
-use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 use PERSPEQTIVE\SuluAiEntityTranslationBundle\Content\Sulu26\ContentRichEntityRepository;
 use PERSPEQTIVE\SuluAiEntityTranslationBundle\Content\Sulu26\DimensionContentAdapter;
-use PERSPEQTIVE\SuluAiEntityTranslationBundle\Doctrine\ResourceKeyEntityRegistryInterface;
 use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Fixtures\Sulu26\TestDimensionContent;
 use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Fixtures\Sulu26\TestEntity;
 use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\SuluVersion;
+use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Unit\Mocks\MockResourceKeyEntityRegistry;
+use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Unit\Mocks\Sulu26\MockEntityManager;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Sulu\Bundle\ContentBundle\Content\Domain\Model\DimensionContentInterface;
@@ -57,8 +57,8 @@ class ContentRichEntityRepositoryTest extends TestCase
     public function testThrowsForUnknownResourceKey(): void
     {
         $repository = new ContentRichEntityRepository(
-            $this->createMock(EntityManagerInterface::class),
-            $this->createRegistry(null),
+            new MockEntityManager(),
+            new MockResourceKeyEntityRegistry(),
         );
 
         $this->expectException(InvalidArgumentException::class);
@@ -82,12 +82,13 @@ class ContentRichEntityRepositoryTest extends TestCase
     {
         $dimensionContent = new TestDimensionContent(new TestEntity());
 
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->expects(self::once())->method('persist')->with($dimensionContent);
+        $entityManager = new MockEntityManager();
 
-        $repository = new ContentRichEntityRepository($entityManager, $this->createRegistry(TestEntity::class));
+        $repository = new ContentRichEntityRepository($entityManager, new MockResourceKeyEntityRegistry(TestEntity::class));
 
         $repository->persist(new DimensionContentAdapter($dimensionContent), 'en');
+
+        self::assertSame([$dimensionContent], $entityManager->persisted);
     }
 
     private function addDimensionContent(TestEntity $entity, string $locale, string $stage): TestDimensionContent
@@ -102,20 +103,8 @@ class ContentRichEntityRepositoryTest extends TestCase
 
     private function createRepository(TestEntity $entity): ContentRichEntityRepository
     {
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->method('find')->with(TestEntity::class, '1')->willReturn($entity);
+        $entityManager = new MockEntityManager([TestEntity::class => ['1' => $entity]]);
 
-        return new ContentRichEntityRepository($entityManager, $this->createRegistry(TestEntity::class));
-    }
-
-    /**
-     * @param class-string|null $entityClass
-     */
-    private function createRegistry(?string $entityClass): ResourceKeyEntityRegistryInterface
-    {
-        $registry = $this->createMock(ResourceKeyEntityRegistryInterface::class);
-        $registry->method('findEntityClass')->willReturn($entityClass);
-
-        return $registry;
+        return new ContentRichEntityRepository($entityManager, new MockResourceKeyEntityRegistry(TestEntity::class));
     }
 }

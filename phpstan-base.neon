@@ -28,3 +28,9 @@ parameters:
         -
             identifier: return.type
             path: tests/Application/TestKernel.php
+        # EntityManagerInterface::getMetadataFactory() narrows the return type of the templated
+        # ObjectManager::getMetadataFactory() to a non generic class, so no implementation can
+        # satisfy both. Doctrine's own EntityManager has the same signature.
+        -
+            identifier: method.childReturnType
+            path: tests/Unit/Mocks/*/MockEntityManager.php

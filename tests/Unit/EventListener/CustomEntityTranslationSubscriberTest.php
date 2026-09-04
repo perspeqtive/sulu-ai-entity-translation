@@ -4,21 +4,25 @@ declare(strict_types=1);
 
 namespace PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Unit\EventListener;
 
-use PERSPEQTIVE\SuluAiEntityTranslationBundle\Doctrine\ResourceKeyEntityRegistryInterface;
+use Doctrine\ORM\EntityManagerInterface;
 use PERSPEQTIVE\SuluAiEntityTranslationBundle\Domain\Event\TranslationFailedEvent;
 use PERSPEQTIVE\SuluAiEntityTranslationBundle\EventListener\CustomEntityTranslationSubscriber;
 use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Fixtures\RecordingContentRepository;
+use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Fixtures\TestContentAdapter;
 use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Fixtures\TestDomainEvent;
+use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Unit\Mocks\MockDomainEventDispatcher;
+use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Unit\Mocks\MockEntityManagerFactory;
+use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Unit\Mocks\MockFormMetadataLoader;
+use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Unit\Mocks\MockResourceKeyEntityRegistry;
+use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Unit\Mocks\MockSecurityChecker;
+use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Unit\Mocks\MockTranslator;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
 use stdClass;
-use Sulu\Bundle\ActivityBundle\Application\Dispatcher\DomainEventDispatcherInterface;
 use Sulu\Bundle\ActivityBundle\Domain\Event\DomainEvent;
-use Sulu\Bundle\AdminBundle\Metadata\FormMetadata\FormMetadataLoaderInterface;
 use Sulu\Bundle\AdminBundle\Metadata\MetadataProviderRegistry;
-use Sulu\Bundle\AiBundle\Expert\Translator\TranslatorInterface;
-use Sulu\Component\Security\Authorization\SecurityCheckerInterface;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\String\Slugger\AsciiSlugger;
@@ -100,26 +104,57 @@ class CustomEntityTranslationSubscriberTest extends TestCase
     public function testRecordsAFailureInsteadOfLettingTheRequestFail(): void
     {
         $repository = new RecordingContentRepository(new RuntimeException('Quota exceeded'));
-
-        $dispatched = [];
-        $dispatcher = $this->createMock(DomainEventDispatcherInterface::class);
-        $dispatcher->method('dispatch')->willReturnCallback(
-            static function (DomainEvent $event) use (&$dispatched): DomainEvent {
-                $dispatched[] = $event;
-
-                return $event;
-            },
-        );
+        $dispatcher = new MockDomainEventDispatcher();
 
         $subscriber = $this->createSubscriber($repository, $this->copyLocaleRequest(), dispatcher: $dispatcher);
 
         $subscriber->onDomainEvent(new TestDomainEvent());
 
         self::assertTrue($repository->wasQueried());
-        self::assertCount(1, $dispatched);
-        self::assertInstanceOf(TranslationFailedEvent::class, $dispatched[0]);
-        self::assertSame('test_entities', $dispatched[0]->getResourceKey());
-        self::assertSame(['reason' => 'Quota exceeded'], $dispatched[0]->getEventContext());
+        self::assertCount(1, $dispatcher->dispatched);
+        self::assertInstanceOf(TranslationFailedEvent::class, $dispatcher->dispatched[0]);
+        self::assertSame('test_entities', $dispatcher->dispatched[0]->getResourceKey());
+        self::assertSame(['reason' => 'Quota exceeded'], $dispatcher->dispatched[0]->getEventContext());
+    }
+
+    public function testRecordsAFailureRaisedWhileTranslating(): void
+    {
+        $repository = new RecordingContentRepository(content: new TestContentAdapter());
+        $dispatcher = new MockDomainEventDispatcher();
+
+        $subscriber = $this->createSubscriber(
+            $repository,
+            $this->copyLocaleRequest(),
+            dispatcher: $dispatcher,
+            formMetadataLoader: new MockFormMetadataLoader(new RuntimeException('Quota exceeded')),
+        );
+
+        $subscriber->onDomainEvent(new TestDomainEvent());
+
+        self::assertCount(1, $dispatcher->dispatched);
+        self::assertInstanceOf(TranslationFailedEvent::class, $dispatcher->dispatched[0]);
+        self::assertSame('test_entities', $dispatcher->dispatched[0]->getResourceKey());
+        self::assertSame('1', $dispatcher->dispatched[0]->getResourceId());
+        self::assertSame('en', $dispatcher->dispatched[0]->getResourceLocale());
+        self::assertSame(['reason' => 'Quota exceeded'], $dispatcher->dispatched[0]->getEventContext());
+    }
+
+    public function testSkipsTheActivityLogWhenTheEntityManagerIsClosed(): void
+    {
+        $repository = new RecordingContentRepository(content: new TestContentAdapter());
+        $dispatcher = new MockDomainEventDispatcher();
+
+        $subscriber = $this->createSubscriber(
+            $repository,
+            $this->copyLocaleRequest(),
+            dispatcher: $dispatcher,
+            formMetadataLoader: new MockFormMetadataLoader(new RuntimeException('Deadlock')),
+            entityManager: MockEntityManagerFactory::closed(),
+        );
+
+        $subscriber->onDomainEvent(new TestDomainEvent());
+
+        self::assertSame([], $dispatcher->dispatched);
     }
 
     private function copyLocaleRequest(): Request
@@ -135,27 +170,24 @@ class CustomEntityTranslationSubscriberTest extends TestCase
         RecordingContentRepository $repository,
         Request $request,
         ?string $entityClass = stdClass::class,
-        ?DomainEventDispatcherInterface $dispatcher = null,
+        ?MockDomainEventDispatcher $dispatcher = null,
         array $builtInResourceKeys = [],
+        ?MockFormMetadataLoader $formMetadataLoader = null,
+        ?EntityManagerInterface $entityManager = null,
     ): CustomEntityTranslationSubscriber {
         $requestStack = new RequestStack();
         $requestStack->push($request);
 
-        $registry = $this->createMock(ResourceKeyEntityRegistryInterface::class);
-        $registry->method('findEntityClass')->willReturn($entityClass);
-
-        $securityChecker = $this->createMock(SecurityCheckerInterface::class);
-        $securityChecker->method('hasPermission')->willReturn(true);
-
         return new CustomEntityTranslationSubscriber(
-            $this->createMock(TranslatorInterface::class),
-            $this->createMock(FormMetadataLoaderInterface::class),
-            $this->createMock(MetadataProviderRegistry::class),
+            new MockTranslator(),
+            $formMetadataLoader ?? new MockFormMetadataLoader(),
+            new MetadataProviderRegistry(new ServiceLocator([])),
             $repository,
             $requestStack,
-            $securityChecker,
-            $registry,
-            $dispatcher ?? $this->createMock(DomainEventDispatcherInterface::class),
+            new MockSecurityChecker(),
+            new MockResourceKeyEntityRegistry($entityClass),
+            $dispatcher ?? new MockDomainEventDispatcher(),
+            $entityManager ?? MockEntityManagerFactory::open(),
             new AsciiSlugger(),
             new NullLogger(),
             $builtInResourceKeys,

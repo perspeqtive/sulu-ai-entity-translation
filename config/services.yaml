@@ -19,6 +19,7 @@ services:
       - '@Sulu\Component\Security\Authorization\SecurityCheckerInterface'
       - '@PERSPEQTIVE\SuluAiEntityTranslationBundle\Doctrine\ResourceKeyEntityRegistryInterface'
       - '@sulu_activity.domain_event_dispatcher'
+      - '@doctrine.orm.entity_manager'
       - '@slugger'
       - '@logger'
       - '%sulu_ai_platform.built_in_resource_keys%'

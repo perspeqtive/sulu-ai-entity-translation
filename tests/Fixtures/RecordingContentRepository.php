@@ -23,6 +23,7 @@ final class RecordingContentRepository implements ContentRepositoryInterface
 
     public function __construct(
         private readonly ?Throwable $failure = null,
+        private readonly ?ContentAdapterInterface $content = null,
     ) {
     }
 
@@ -30,7 +31,11 @@ final class RecordingContentRepository implements ContentRepositoryInterface
     {
         $this->lookups[] = ['id' => $id, 'locale' => $locale, 'resourceKey' => $resourceKey];
 
-        throw $this->failure ?? new RuntimeException('No content configured');
+        if (null !== $this->failure) {
+            throw $this->failure;
+        }
+
+        return $this->content ?? throw new RuntimeException('No content configured');
     }
 
     public function persist(ContentAdapterInterface $content, string $locale): void
