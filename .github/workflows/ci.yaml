@@ -47,7 +47,7 @@ jobs:
             -   name: Install dependencies
                 env:
                     CONSTRAINTS: ${{ matrix.constraints }}
-                run: composer update $CONSTRAINTS --with-all-dependencies --no-interaction --no-progress
+                run: composer require $CONSTRAINTS --with-all-dependencies --no-interaction --no-progress
 
             -   name: Run tests
                 run: vendor/bin/phpunit
