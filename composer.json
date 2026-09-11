@@ -21,8 +21,7 @@
     "require": {
         "php": "^8.2",
         "sulu/sulu": "^2.6 || ^3.0",
-        "sulu/content-bundle": "^0.8 || ^3.0",
-        "sulu/ai-platform-bundle": "^0.8",
+        "sulu/ai-platform-bundle": "*",
         "psr/log": "^3.0",
         "symfony/string": "^6.4 || ^7.0"
     },
