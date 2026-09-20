@@ -88,7 +88,7 @@ class CustomEntityTranslationSubscriberTest extends TestCase
     public function testIgnoresEventsWithoutATargetLocale(string $actionName): void
     {
         $repository = new RecordingContentRepository();
-        $subscriber = $this->createSubscriber($repository, $this->copyLocaleRequest($actionName ));
+        $subscriber = $this->createSubscriber($repository, $this->copyLocaleRequest($actionName));
 
         $subscriber->onDomainEvent(new TestDomainEvent(resourceLocale: null));
 
@@ -202,11 +202,14 @@ class CustomEntityTranslationSubscriberTest extends TestCase
         );
     }
 
+    /**
+     * @return array<string, list<string>>
+     */
     public static function provideCopyLocaleParameter(): array
     {
         return [
             'sulu-2' => ['copy-locale'],
-            'sulu-3' => ['copy_locale']
+            'sulu-3' => ['copy_locale'],
         ];
     }
 }
