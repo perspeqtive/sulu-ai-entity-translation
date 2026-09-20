@@ -161,7 +161,7 @@ class RecordTranslationFailureTest extends KernelTestCase
         /** @var RequestStack $requestStack */
         $requestStack = self::getContainer()->get('request_stack');
         $requestStack->push(new Request([
-            'action' => 'copy-locale',
+            'action' => 'copy_locale',
             'src' => 'de',
             'dest' => 'en',
             'translate' => 'true',

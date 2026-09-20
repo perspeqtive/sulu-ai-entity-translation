@@ -16,6 +16,7 @@ use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Unit\Mocks\MockFormMetadataL
 use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Unit\Mocks\MockResourceKeyEntityRegistry;
 use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Unit\Mocks\MockSecurityChecker;
 use PERSPEQTIVE\SuluAiEntityTranslationBundle\Tests\Unit\Mocks\MockTranslator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
@@ -39,20 +40,22 @@ class CustomEntityTranslationSubscriberTest extends TestCase
         );
     }
 
-    public function testIgnoresResourcesThatAreNotContentRichEntities(): void
+    #[DataProvider('provideCopyLocaleParameter')]
+    public function testIgnoresResourcesThatAreNotContentRichEntities(string $actionName): void
     {
         $repository = new RecordingContentRepository();
-        $subscriber = $this->createSubscriber($repository, $this->copyLocaleRequest(), entityClass: null);
+        $subscriber = $this->createSubscriber($repository, $this->copyLocaleRequest($actionName), entityClass: null);
 
         $subscriber->onDomainEvent(new TestDomainEvent());
 
         self::assertFalse($repository->wasQueried());
     }
 
-    public function testIgnoresResourcesSuluAiTranslatesItself(): void
+    #[DataProvider('provideCopyLocaleParameter')]
+    public function testIgnoresResourcesSuluAiTranslatesItself(string $actionName): void
     {
         $repository = new RecordingContentRepository();
-        $subscriber = $this->createSubscriber($repository, $this->copyLocaleRequest(), builtInResourceKeys: ['pages']);
+        $subscriber = $this->createSubscriber($repository, $this->copyLocaleRequest($actionName), builtInResourceKeys: ['pages']);
 
         $subscriber->onDomainEvent(new TestDomainEvent(resourceKey: 'pages'));
 
@@ -62,7 +65,7 @@ class CustomEntityTranslationSubscriberTest extends TestCase
     public function testIgnoresRequestsThatAreNotCopyingALocale(): void
     {
         $repository = new RecordingContentRepository();
-        $request = new Request(['action' => 'publish', 'translate' => 'true']);
+        $request = $this->copyLocaleRequest('something-unknown');
         $subscriber = $this->createSubscriber($repository, $request);
 
         $subscriber->onDomainEvent(new TestDomainEvent());
@@ -81,32 +84,35 @@ class CustomEntityTranslationSubscriberTest extends TestCase
         self::assertFalse($repository->wasQueried());
     }
 
-    public function testIgnoresEventsWithoutATargetLocale(): void
+    #[DataProvider('provideCopyLocaleParameter')]
+    public function testIgnoresEventsWithoutATargetLocale(string $actionName): void
     {
         $repository = new RecordingContentRepository();
-        $subscriber = $this->createSubscriber($repository, $this->copyLocaleRequest());
+        $subscriber = $this->createSubscriber($repository, $this->copyLocaleRequest($actionName ));
 
         $subscriber->onDomainEvent(new TestDomainEvent(resourceLocale: null));
 
         self::assertFalse($repository->wasQueried());
     }
 
-    public function testIgnoresItsOwnFailureEvents(): void
+    #[DataProvider('provideCopyLocaleParameter')]
+    public function testIgnoresItsOwnFailureEvents(string $actionName): void
     {
         $repository = new RecordingContentRepository();
-        $subscriber = $this->createSubscriber($repository, $this->copyLocaleRequest());
+        $subscriber = $this->createSubscriber($repository, $this->copyLocaleRequest($actionName));
 
         $subscriber->onDomainEvent(new TranslationFailedEvent('test_entities', '1', 'en', null, 'boom'));
 
         self::assertFalse($repository->wasQueried());
     }
 
-    public function testRecordsAFailureInsteadOfLettingTheRequestFail(): void
+    #[DataProvider('provideCopyLocaleParameter')]
+    public function testRecordsAFailureInsteadOfLettingTheRequestFail(string $actionName): void
     {
         $repository = new RecordingContentRepository(new RuntimeException('Quota exceeded'));
         $dispatcher = new MockDomainEventDispatcher();
 
-        $subscriber = $this->createSubscriber($repository, $this->copyLocaleRequest(), dispatcher: $dispatcher);
+        $subscriber = $this->createSubscriber($repository, $this->copyLocaleRequest($actionName), dispatcher: $dispatcher);
 
         $subscriber->onDomainEvent(new TestDomainEvent());
 
@@ -117,14 +123,15 @@ class CustomEntityTranslationSubscriberTest extends TestCase
         self::assertSame(['reason' => 'Quota exceeded'], $dispatcher->dispatched[0]->getEventContext());
     }
 
-    public function testRecordsAFailureRaisedWhileTranslating(): void
+    #[DataProvider('provideCopyLocaleParameter')]
+    public function testRecordsAFailureRaisedWhileTranslating(string $actionName): void
     {
         $repository = new RecordingContentRepository(content: new TestContentAdapter());
         $dispatcher = new MockDomainEventDispatcher();
 
         $subscriber = $this->createSubscriber(
             $repository,
-            $this->copyLocaleRequest(),
+            $this->copyLocaleRequest($actionName),
             dispatcher: $dispatcher,
             formMetadataLoader: new MockFormMetadataLoader(new RuntimeException('Quota exceeded')),
         );
@@ -139,14 +146,15 @@ class CustomEntityTranslationSubscriberTest extends TestCase
         self::assertSame(['reason' => 'Quota exceeded'], $dispatcher->dispatched[0]->getEventContext());
     }
 
-    public function testSkipsTheActivityLogWhenTheEntityManagerIsClosed(): void
+    #[DataProvider('provideCopyLocaleParameter')]
+    public function testSkipsTheActivityLogWhenTheEntityManagerIsClosed(string $actionName): void
     {
         $repository = new RecordingContentRepository(content: new TestContentAdapter());
         $dispatcher = new MockDomainEventDispatcher();
 
         $subscriber = $this->createSubscriber(
             $repository,
-            $this->copyLocaleRequest(),
+            $this->copyLocaleRequest($actionName),
             dispatcher: $dispatcher,
             formMetadataLoader: new MockFormMetadataLoader(new RuntimeException('Deadlock')),
             entityManager: MockEntityManagerFactory::closed(),
@@ -157,9 +165,9 @@ class CustomEntityTranslationSubscriberTest extends TestCase
         self::assertSame([], $dispatcher->dispatched);
     }
 
-    private function copyLocaleRequest(): Request
+    private function copyLocaleRequest(string $actionName = 'copy-locale'): Request
     {
-        return new Request(['action' => 'copy-locale', 'src' => 'de', 'dest' => 'en', 'translate' => 'true']);
+        return new Request(['action' => $actionName, 'src' => 'de', 'dest' => 'en', 'translate' => 'true']);
     }
 
     /**
@@ -192,5 +200,13 @@ class CustomEntityTranslationSubscriberTest extends TestCase
             new NullLogger(),
             $builtInResourceKeys,
         );
+    }
+
+    public static function provideCopyLocaleParameter(): array
+    {
+        return [
+            'sulu-2' => ['copy-locale'],
+            'sulu-3' => ['copy_locale']
+        ];
     }
 }

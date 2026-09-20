@@ -191,7 +191,7 @@ final class CustomEntityTranslationSubscriber extends AbstractFullContentTransla
             return false;
         }
 
-        return 'copy-locale' === $request->query->get('action')
+        return in_array($request->query->get('action'), ['copy-locale', 'copy_locale'], true) === true
             && 'true' === $request->query->get('translate');
     }
 

@@ -58,15 +58,19 @@ return static function (ContainerConfigurator $container): void {
         ]);
     }
 
-    $container->extension('sulu_ai_platform', [
+    $suluAIPlatformConfig = [
         'api_key' => 'test-api-key',
         'text_field_types' => ['text_line', 'text_area', 'custom_text_line'],
         'html_field_types' => ['text_editor', 'custom_editor'],
-        'contact_email' => 'test@example.com',
         'webhook' => [
             'secret' => 'test-webhook-secret',
         ],
-    ]);
+    ];
+
+    if ('Sulu3' === $suluVersion) {
+        $suluAIPlatformConfig['contact_email'] = 'test@example.com';
+    }
+    $container->extension('sulu_ai_platform', $suluAIPlatformConfig);
 
     // Replace the real translator, so tests never reach the sulu.ai platform.
     $container->services()

@@ -104,7 +104,7 @@ class TranslateCopiedLocaleTest extends KernelTestCase
         /** @var RequestStack $requestStack */
         $requestStack = self::getContainer()->get('request_stack');
         $requestStack->push(new Request([
-            'action' => 'copy-locale',
+            'action' => 'copy_locale',
             'src' => 'de',
             'dest' => 'en',
             'translate' => 'true',
@@ -132,7 +132,7 @@ class TranslateCopiedLocaleTest extends KernelTestCase
         $german = $this->addDimensionContent($entity, 'de', $templateKey);
         $german->setTemplateData(['title' => 'Glossarbegriff', 'description' => '<p>Eine Erklärung</p>', 'reference' => null]);
 
-        // This is what copy-locale leaves behind: the source content under the target locale.
+        // This is what copy_locale leaves behind: the source content under the target locale.
         $english = $this->addDimensionContent($entity, 'en', $templateKey);
         $english->setTemplateData(['title' => 'Glossarbegriff', 'description' => '<p>Eine Erklärung</p>', 'reference' => null]);
 
